@@ -456,7 +456,7 @@ const checkBossHealth = () => {
         narration.innerText = 'He has taken some damage, but he still comes forward.';
     } else if (boss.health > 3) {
         boss.alive = true;
-        narration.innerText = 'This guys just will not go down! He runs at you again!';
+        narration.innerText = 'This guy just will not go down! He runs at you again!';
     } else if (boss.health > 1) {
         boss.alive = true;
         narration.innerText = 'He should have fallen by now! One more should do it.';
