@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Game</title>
+    <link rel="stylesheet" href="app.css">
+</head>
+
+<body>
+
+    <div class="menu">
+        <button id="startButton">Start</button>
+    </div>
+
+    <div class="grid-container">
+        <div>
+            <div class="grid-item" id="a1"></div>
+            <div class="grid-item" id="a2"></div>
+            <div class="grid-item" id="a3"></div>
+        </div>
+        <div>
+            <div class="grid-item" id="b1"></div>
+            <div class="grid-item" id="b2"><span id="playerOnMap"></span></div>
+            <div class="grid-item" id="b3"></div>
+        </div>
+        <div>
+            <div class="grid-item" id="c1"></div>
+            <div class="grid-item" id="c2"></div>
+            <div class="grid-item" id="c3"></div>
+        </div>
+    </div>
+
+    <div class="gameText">
+        <h1 id="narration">
+            <p>You awaken in a dark room. After a few moments of searching in the dark, you find a box of old
+                matches.</p>
+        </h1>
+        <div class="action">
+            <form id="form" autocomplete="off">
+                <input type="text" name="userInput" id="userInput" placeholder="What do you do?">
+            </form>
+        </div>
+    </div>
+    <script src="textGame.js"></script>
+</body>
+
+</html>
