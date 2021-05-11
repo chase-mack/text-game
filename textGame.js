@@ -51,7 +51,7 @@ const rooms = ['up', 'bedroom', 'office',
 
 const stopInputs = ["window", "break", "tools", "screwdriver", "door", "unlock"];
 
-const itemsArray = ["match", "flashlight", "key", "food", "number", "code", "combination", "crowbar", "bat", "button", "skip", "under"];
+const itemsArray = ["match", "flashlight", "key", "food", "number", "code", "combination", "crowbar", "bat", "button", "under"];
 
 const bossFight = ["dodge", "move", "run", "escape", "hit", "attack", "swing", "kill"];
 
