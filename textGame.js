@@ -20,6 +20,9 @@ const locations = [
     [b1, b2, b3],
     [c1, c2, c3]
 ];
+const music = new Audio('assets/music.mp3'); 
+const walking = new Audio('assets/walking.mp3');
+
 currentLocation = locations[1][1];
 
 const player = {
@@ -84,6 +87,7 @@ const checkInput = (e) => {
 }
 
 const playerMove = (room) => {
+    walking.play();
     switch (room) {
         case 'foyer': {
             if (player.inventory.flashlight === true) {
@@ -509,4 +513,10 @@ startButton.addEventListener('click', function () {
     menu.style.display = 'none';
     map.style.display = 'grid';
     gameText.style.display = 'flex';
+
+    music.addEventListener('ended', function() {
+        this.currentTime = 0;
+        this.play();
+    }, false);
+    music.play();
 })
