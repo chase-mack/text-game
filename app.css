@@ -34,7 +34,7 @@ body .grid-container {
     display: none;
     position: fixed;
     top: 0;
-    left: 0;
+    right: 0;
     grid-template-columns: auto auto auto;
     height: 95px;
     width: 100px;
