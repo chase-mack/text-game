@@ -20,8 +20,27 @@ const locations = [
     [b1, b2, b3],
     [c1, c2, c3]
 ];
-const music = new Audio('assets/music.mp3'); 
-const walking = new Audio('assets/walking.mp3');
+const music = new Audio('assets/music.mp3');
+const walking = new Audio('assets/walking.wav');
+const attack = new Audio('assets/attack.wav');
+const breakLock = new Audio('assets/break-lock.wav');
+const doorOpen = new Audio('assets/door-open.wav');
+const flashlight = new Audio('assets/flashlight.wav');
+const key = new Audio('assets/key.wav');
+const locked = new Audio('assets/locked.wav');
+const match = new Audio('assets/match.wav');
+const mystery = new Audio('assets/mystery.wav');
+const can = new Audio('assets/can.wav');
+const crowbar = new Audio('assets/crowbar.wav');
+const swallow = new Audio('assets/swallow.wav')
+const growl = new Audio('assets/growl.wav');
+const paper = new Audio('assets/paper.wav');
+const bat = new Audio('assets/bat.wav');
+const ending = new Audio('assets/game-over.wav');
+const killingBlow = new Audio('assets/killing-blow.wav');
+const button = new Audio('assets/button-press.wav');
+const takeKey = new Audio('assets/take-key.wav');
+const zombie = new Audio('assets/zombie.wav');
 
 currentLocation = locations[1][1];
 
@@ -32,13 +51,14 @@ const player = {
     location: currentLocation,
     matchUsed: false,
     fed: false,
+    usedCrowbar: false,
+    usedCode: false,
     inventory: {
         match: false,
         flashlight: false,
         key: false,
         fed: false,
         crowbar: false,
-        'bolt cutters': false,
     }
 }
 
@@ -87,7 +107,6 @@ const checkInput = (e) => {
 }
 
 const playerMove = (room) => {
-    walking.play();
     switch (room) {
         case 'foyer': {
             if (player.inventory.flashlight === true) {
@@ -125,7 +144,6 @@ const playerMove = (room) => {
                     showPlayer();
                 } else if (currentLocation === locations[0][1] && player.inventory.flashlight !== true) {
                     narration.innerText = 'It would be too dangerous to take the stairs in the dark.';
-                    showPlayer();
                 } else {
                     narration.innerText = 'You do not see any stairs.';
                 }
@@ -140,27 +158,38 @@ const playerMove = (room) => {
                     narration.innerText = 'The door to the bedroom stands before you. It is locked.';
                     showPlayer();
                 } else {
+                    tryLockedDoor();
+                    setTimeout(function () {
+                        growl.play();
+                    }, 2500);
                     currentLocation = locations[0][0];
-                    narration.innerText = 'You try the door. It is locked...you hear movement on the other side.';
+                    narration.innerText = 'You try the door. It is locked...you hear something on the other side.';
                     showPlayer();
                 }
             } break;
         }
         case 'office': {
             if (player.inventory.key === true) {
-                currentLocation = locations[2][0];
                 narration.innerText = `You probably don't need a broken computer.`;
-                showPlayer();
-            } else if (player.inventory.combination === true) {
-                currentLocation = locations[2][1];
-                narration.innerText = 'You arrive at the door to the office. It is locked';
-                showPlayer();
-            } else if (player.inventory.flashlight === true) {
-                currentLocation = locations[2][1];
-                narration.innerText = 'The door has a combination lock. You cannot enter. Maybe the combination is written on something.'
-                showPlayer();
             } else {
-                narration.innerText = 'If an office is near, it is too dark to find.';
+                if (player.usedCode === true) {
+                    openDoor();
+                    currentLocation = locations[2][0];
+                    narration.innerText = 'You are back in the office';
+                    showPlayer();
+                } else if (player.inventory.combination === true) {
+                    tryLockedDoor();
+                    currentLocation = locations[2][1];
+                    narration.innerText = 'You arrive at the door to the office. It is locked';
+                    showPlayer();
+                } else if (player.inventory.flashlight === true) {
+                    tryLockedDoor();
+                    currentLocation = locations[2][1];
+                    narration.innerText = 'The door has a combination lock. You cannot enter. Maybe the combination is written on something.'
+                    showPlayer();
+                } else {
+                    narration.innerText = 'If an office is near, it is too dark to find.';
+                }
             } break;
         }
         case 'kitchen': {
@@ -180,18 +209,19 @@ const playerMove = (room) => {
         }
         case 'garage': {
             if (player.inventory.flashlight !== true) {
-                currentLocation = locations[0][1];
                 narration.innerText = 'It is too dark to find your way to the garage.';
-                showPlayer();
             } else if (player.inventory.flashlight === true && player.inventory.crowbar === false) {
+                openDoor();
                 currentLocation = locations[0][2];
                 narration.innerText = 'Inside the garage, you see lots of clutter. Under a pizza box in the corner you see a crowbar';
                 showPlayer();
             } else if (player.inventory.combination !== true && player.inventory.crowbar === true) {
+                openDoor();
                 currentLocation = locations[0][2];
                 narration.innerText = 'Maybe there is something else under all of this junk?';
                 showPlayer();
             } else if (player.inventory.crowbar === true && player.inventory.combination === true) {
+                openDoor();
                 currentLocation = locations[0][2];
                 narration.innerText = 'Nothing left but garbage.';
                 showPlayer();
@@ -205,7 +235,7 @@ const playerMove = (room) => {
             } else {
                 if (player.inventory.flashlight === true) {
                     currentLocation = locations[1][2];
-                    narration.innerText = 'You go downstairs. Appears to be the basement door.';
+                    narration.innerText = 'You go downstairs. Before you is the basement door.';
                     showPlayer();
                 } else {
                     currentLocation = locations[1][1];
@@ -216,15 +246,23 @@ const playerMove = (room) => {
         }
         case 'basement': {
             if (player.inventory.bat === true) {
+                openDoor();
                 currentLocation = locations[2][2];
                 narration.innerText = 'Now is not the time to look for baseball cards.';
                 showPlayer();
             } else {
-                if (player.inventory.flashlight === true) {
+                if (player.usedCrowbar === true) {
+                    openDoor();
+                    narration.innerText = 'You return to apprectiate the sports memorabilia.'
+                    currentLocation = locations[2][2];
+                    showPlayer();
+                }
+                if (player.inventory.flashlight === true && player.usedCrowbar === false) {
+                    tryLockedDoor();
                     currentLocation = locations[1][2]
                     narration.innerText = 'The door is stuck shut. The lock is broken.';
                     showPlayer();
-                } else {
+                } else if (player.inventory.flashlight === false) {
                     narration.innerText = 'You can not navigate this house in the dark.';
                     showPlayer();
                 }
@@ -234,10 +272,16 @@ const playerMove = (room) => {
         case 'leave':
         case 'outside': {
             if (boss.alive === true) {
+                tryLockedDoor();
                 narration.innerText = 'The front door is electronically locked with a heavy deadbolt. You can not open it.';
             } else if (boss.alive === false) {
+                currentLocation = locations[0][1];
+                showPlayer();
+                openDoor();
                 narration.innerText = 'You open the door and nothing is familiar. This is not the world you remember. This is chaos...';
-                gameOver();
+                setTimeout(function () {
+                    gameOver();
+                }, 2000);
             } break;
         }
         default:
@@ -254,6 +298,7 @@ const equipItem = (item) => {
                 if (player.matchUsed === true) {
                     narration.innerText = 'You have already used the last match.';
                 } else {
+                    match.play();
                     player.inventory.match = true;
                     player.matchUsed = true;
                     narration.innerText = 'You strike the last match. Before the match fades you see the foyer and a darkened kitchen in the distance. The dying flame reflects off of what appears to be a flashlight by the front door.';
@@ -264,12 +309,20 @@ const equipItem = (item) => {
             if (player.matchUsed === false) {
                 narration.innerText = 'It is dark. You see nothing around you.';
             } else {
-                if (currentLocation === locations[1][1] || currentLocation === locations[0][1] && player.inventory.flashlight === false) {
+                if (currentLocation === locations[1][1] && player.inventory.flashlight === false) {
+                    walking.play();
+                    setTimeout(function () {
+                        flashlight.play();
+                    }, 2000);
                     player.inventory.flashlight = true;
                     currentLocation = locations[0][1];
                     narration.innerText = 'You enter the foyer and take the flashlight. As you turn on the light, you see the door to a garage, a set of stairs leading up, and the living room from which you just came.';
                     showPlayer();
-                } else if (player.inventory.flashlight === true) {
+                } else if (currentLocation === locations[0][1] && player.inventory.flashlight === false) {
+                    flashlight.play();
+                    player.inventory.flashlight = true;
+                    narration.innerText = 'You take the flashlight. As you turn on the light, you see the door to a garage, a set of stairs leading up, and the living room from which you just came.';
+                } else {
                     narration.innerText = 'You already have the flashlight.';
                 }
             } break;
@@ -277,11 +330,16 @@ const equipItem = (item) => {
         case 'key': {
             if (currentLocation === locations[0][0] && player.inventory.key === true) {
                 currentLocation = locations[1][0];
-                narration.innerText = 'As you turn the key, the noise from inside go silent. You cautiously enter the room. With a roar, a maniacal man lunges for you from the other side of the bed!';
+                narration.innerText = 'As you turn the key, the noise from inside goes silent. You cautiously enter the room. With a gasping roar, a maniacal man lunges for you from the other side of the bed!';
+                key.play();
+                setTimeout(function () {
+                    zombie.play();
+                }, 1500);
                 showPlayer();
             } else {
                 if (currentLocation === locations[2][0] && player.inventory.key === false) {
                     player.inventory.key = true;
+                    takeKey.play();
                     narration.innerText = 'You pocket the key.';
                 } else {
                     narration.innerText = 'You do not see a key.';
@@ -292,6 +350,10 @@ const equipItem = (item) => {
             if (currentLocation != locations[2][1]) {
                 narration.innerText = 'There is no food in here.';
             } else {
+                swallow.play();
+                setTimeout(function () {
+                    can.play();
+                }, 2000);
                 player.fed = true;
                 narration.innerText = 'You eat a can of peaches. Millions of peaches. You feel better.';
             } break;
@@ -302,12 +364,14 @@ const equipItem = (item) => {
         case 'combination': {
             if (currentLocation === locations[2][1] && player.inventory.combination === true) {
                 currentLocation = locations[2][0];
+                player.usedCode = true;
                 narration.innerText = 'The combination works! Inside the office is a disheveled desk; a smashed computer lies in a heap on the side of the room. You see a key on the desk.';
                 showPlayer();
             } else {
                 if (currentLocation != locations[0][2]) {
                     narration.innerText = 'You do not find anything resembling a combination number.';
                 } else {
+                    paper.play();
                     player.inventory.combination = true;
                     narration.innerText = 'You find a sliver of paper in a pile of empty soda cases. Who lives here? Written on it are three numbers. You keep the paper.';
                 }
@@ -317,6 +381,7 @@ const equipItem = (item) => {
             if (currentLocation != locations[2][2]) {
                 narration.innerText = 'This room does not contain sports equipment.';
             } else {
+                bat.play();
                 player.inventory.bat = true;
                 narration.innerText = 'You grab the baseball bat.';
             } break;
@@ -325,10 +390,17 @@ const equipItem = (item) => {
             if (currentLocation === locations[1][2] && player.fed === true) {
                 currentLocation = locations[2][2];
                 narration.innerText = 'You loudly break the lock free and the basement door swings open. Was that a crashing upstairs? The owner has baseball equipment stored here.';
+                player.usedCrowbar = true;
+                breakLock.play();
+                setTimeout(function () {
+                    mystery.play();
+                }, 1500);
                 showPlayer();
             } else if (currentLocation === locations[1][2]) {
+                locked.play();
                 narration.innerText = 'You try to force the lock open but in your weakened state, you fail.';
             } else if (currentLocation === locations[0][2]) {
+                crowbar.play();
                 player.inventory.crowbar = true;
                 narration.innerText = 'You now have a crowbar.';
             } else {
@@ -339,6 +411,7 @@ const equipItem = (item) => {
             if (currentLocation != locations[1][0]) {
                 narration.innerText = 'What button?';
             } else if (boss.alive === false) {
+                button.play();
                 narration.innerText = 'You hear a loud click downstairs. This must unlock the front door. What is out there?';
             } break;
         }
@@ -358,6 +431,11 @@ const playerStop = (stop) => {
             if (currentLocation === locations[1][2] && player.inventory.crowbar === true && player.fed === true) {
                 currentLocation = locations[2][2];
                 narration.innerText = 'You loudly break the frozen lock and the basement door swings open. Was that a crashing upstairs? The owner has baseball equipment stored here.';
+                player.usedCrowbar = true;
+                breakLock.play();
+                setTimeout(function () {
+                    mystery.play();
+                }, 1500);
                 showPlayer();
             } else {
                 narration.innerText = 'It does not break.';
@@ -381,7 +459,7 @@ const playerStop = (stop) => {
                 narration.innerText = 'How do you attempt to unlock this?';
             } else {
                 narration.innerText = 'What do you want to unlock?';
-            }
+            } break;
         }
         case 'inside': {
             narration.innerText = 'Which room would you like to enter?';
@@ -451,6 +529,19 @@ const checkValidInput = () => {
 
 const showPlayer = () => {
     currentLocation.appendChild(playerOnMap);
+    walking.play();
+}
+
+const openDoor = () => {
+    setTimeout(function () {
+        doorOpen.play();
+    }, 1500);
+}
+
+const tryLockedDoor = () => {
+    setTimeout(function () {
+        locked.play();
+    }, 1500);
 }
 
 const unarmedAttack = () => {
@@ -485,18 +576,23 @@ checkPlayerHealth = () => {
 const checkBossHealth = () => {
     if (boss.health > 7) {
         boss.alive = true;
+        attack.play();
         narration.innerText = 'The man absorbs the attack, but does not go down.';
     } else if (boss.health > 5) {
         boss.alive = true;
+        attack.play();
         narration.innerText = 'He has taken some damage, but he still comes forward.';
     } else if (boss.health > 3) {
         boss.alive = true;
+        attack.play();
         narration.innerText = 'This guy just will not go down! He runs at you again!';
     } else if (boss.health > 1) {
         boss.alive = true;
+        attack.play();
         narration.innerText = 'He should have fallen by now! One more should do it.';
     } else {
         boss.alive = false;
+        killingBlow.play();
         narration.innerText = `You smash the man's head in and he falls. It looks like he has been dead for days. What is going on? You see a glowing red light on the wall above a button.`;
     }
 }
@@ -505,6 +601,8 @@ const gameOver = () => {
     if (player.alive !== true || boss.alive === false) {
         form.style.display = 'none';
     }
+    music.pause();
+    ending.play();
 }
 
 form.addEventListener('submit', checkInput);
@@ -514,7 +612,7 @@ startButton.addEventListener('click', function () {
     map.style.display = 'grid';
     gameText.style.display = 'flex';
 
-    music.addEventListener('ended', function() {
+    music.addEventListener('ended', function () {
         this.currentTime = 0;
         this.play();
     }, false);
