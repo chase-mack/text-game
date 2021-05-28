@@ -611,6 +611,7 @@ startButton.addEventListener('click', function () {
     menu.style.display = 'none';
     map.style.display = 'grid';
     gameText.style.display = 'flex';
+    toggleFade();
 
     music.addEventListener('ended', function () {
         this.currentTime = 0;
@@ -618,3 +619,17 @@ startButton.addEventListener('click', function () {
     }, false);
     music.play();
 })
+
+const toggleFade = () => {
+    if (narration.classList === "fade-out") {
+        setTimeout(function () {
+            narration.classList.remove("fade-out");
+            narration.classList.add("fade-in");
+        }, 501);
+    } else if (narration.classList === "fade-out") {
+        narration.classList.remove("fade-out");
+        narration.classList.add("fade-in");
+    } else {
+        narration.classList.add("fade-in");
+    }
+}
