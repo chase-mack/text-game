@@ -56,8 +56,8 @@ body .grid-container {
     flex-direction: column;
     margin: auto;
     align-items: center;
-    width: 30vw;
-    font-size: 1vw;
+    width: 50%;
+    font-size: .75rem;
     text-align: center;
     color: rgb(220, 190, 95);
 }
